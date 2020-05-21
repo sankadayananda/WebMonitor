@@ -16,8 +16,9 @@ def trigger_handler(event, context):
     url = os.environ['url']
     server_ip =  os.environ['server_ip']
     worker_lambda = os.environ['worker_lambda']
+    server_reigon = os.environ['server_reigon']
 
-    client = boto3.client('lambda', region_name='ap-south-1')
+    client = boto3.client('lambda', region_name=server_reigon)
     try:
         r = requests.get(url, timeout=5)
         status_code = int(r.status_code)
