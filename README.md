@@ -1,9 +1,13 @@
 # WebMonitor
  > WebMonitor is a two part lambda solution where it uses WebMon lambda to monitor the website availability from outside and trigger WebHeal lambda to take corrective actions to restore the website when needed.
  > The WebMon lambda uses python response library to monitor Web site availability. A private s3 bucket is used to store the ec2 instance public keys.
- > The WebHeal lambda uses python paramiko library along with the s3 stored public keys to access the ec2 instance.
+ > The WebHeal lambda uses python paramiko library along with the s3 stored public keys to access the ec2 instance.  
+![Architecture](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMoitor_Diagram.png)
 
-# AWS services used
+### Notes
+ > This is not a fully fledged application that is capable of handling all Web Site errors.
+
+### AWS services used
  - AWS Lambda
  - AWS S3 Storage
  - CloudWatch Service
@@ -127,7 +131,7 @@ zip -r ../paramiko.zip .
 ### Configure WebMon Lambda
  > Create a Lambda function named WebMon with runtime environment python 2.7 as shown in the below image. Attach the previously created WebMonRole as the execution role.
  > [Step 1](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Lambda_Create_1.PNG)
- > The Lambda function handler info need to updated with the python script name and trigger function name of Lambda. In our example it's "WebMon.trigger_handler".
+ > The lambda function handler info need to updated with the python script name and trigger function name of lambda. In our example it's "WebMon.trigger_handler".
  > [Step 2](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Lambda_Create_2.PNG)
  > Now we need to add the previously added "requests" layer to the function. You can do it in the following manner
  - In the designer view click on Layers box - [select layers](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_requests_layer1.PNG)
@@ -140,42 +144,42 @@ zip -r ../paramiko.zip .
  - luser --> ec2 instance login name(This user need to have sudo permissions to execute privileged commands)
  - server_reigon --> ec2 instance region
  - url --> Server health monitor url
- - worker_lambda --> Lambda to call when the above mentioned url is not accessible.In our example it's WebHeal
+ - worker_lambda --> lambda to call when the above mentioned url is not accessible.In our example it's WebHeal
  > Once added you will see a similar view as shown below
  > [Environment Variables](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Environment.PNG)
  > Once all set change the execution timeout value higher than 5s
  > [Change Execution Timeout](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Execution_time.PNG)
 
 ### Configure WebHeal Lambda
- > Create a Lambda function named WebHeal with runtime environment python 2.7 as shown on the below image. Attach the previously created WebHealRole as the execution role.
+ > Create a lambda function named WebHeal with runtime environment python 2.7 as shown on the below image. Attach the previously created WebHealRole as the execution role.
  > [Step 1](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Lambda_Create_1.PNG)
- > The Lambda function handler info need to updated with the python script name and trigger function name of Lambda. In our example it's "WebHeal.rexec_handler".
+ > The lambda function handler info need to updated with the python script name and trigger function name of lambda. In our example it's "WebHeal.rexec_handler".
  > [Step 2](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Lambda_Create_2.PNG)
  > Now we need to add the previously added "paramiko" layer to the function. You can follow same steps we did for the "requests" in the previous topic.
  > Once all set change the execution timeout value higher than 60s
  > [Change Execution Timeout](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Execution_time.PNG)
 
 ### Configure tests for Lambda
- > It is highly recommended to test each lambda individually before running a integrated test.Once both individual and integrated tests are completed we can schedule the WebMon Lambda via CloudWatch events.Testing for Lambda can be configured in the following manner.
- > Inside the Lambda in-between Actions and Tests buttons there's a drop down list. In that list select Configure test events.
+ > It is highly recommended to test each lambda individually before running a integrated test.Once both individual and integrated tests are completed we can schedule the WebMon lambda via CloudWatch events.Testing for lambda can be configured in the following manner.
+ > Inside the lambda in-between Actions and Tests buttons there's a drop down list. In that list select Configure test events.
  > Once inside, configure and run the tests in the following manner.
- - Configure WebMon Lambda tests --> [WebMon Test Configure](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Test_Configure.PNG)
- - WebMon Lambda test output --> [WebMon Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Test_Out.PNG)
- - Configure WebHeal Lambda tests --> [WebHeal Test Configure](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Test_Configure.PNG)
- - WebHeal Lambda test output --> [WebHeal Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Test_Out.PNG)
- > For the integrated testing to happen the httpd service need to be shutdown temporary and run the WebMon Lambda test.Once the WebMon identifies the website is down, it will trigger the WebHeal Lambda to start the httpd service.
+ - Configure WebMon lambda tests --> [WebMon Test Configure](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Test_Configure.PNG)
+ - WebMon lambda test output --> [WebMon Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Test_Out.PNG)
+ - Configure WebHeal lambda tests --> [WebHeal Test Configure](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Test_Configure.PNG)
+ - WebHeal lambda test output --> [WebHeal Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Test_Out.PNG)
+ > For the integrated testing to happen the httpd service need to be shutdown temporary and run the WebMon lambda test.Once the WebMon identifies the website is down, it will trigger the WebHeal lambda to start the httpd service.
  - [Integrated Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMonitor_integrated_test.PNG)
- > The two Lambda functions will create logs under CloudWatch log groups
+ > The two lambda functions will create logs under CloudWatch log groups
  - [CloudWatch Log Groups View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMonitor_CloudWatch_Log_Groups.PNG)
- > The WebHeal Lambda output can be seen via CloudWatch log groups
+ > The WebHeal lambda output can be seen via CloudWatch log groups
  - [CloudWatch WebHeal Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMonitor_CloudWatch_WebHeal_Log.PNG)
 
 ### Schedule WebMon Lambda via CloudWatch
  > Final Stage of this excersie is to periodically execute the WebMon lambda. This could be done via CloudWatch Events.
- > Go To Lambda -> Functions -> WebMon -> [Add trigger] Button
+ > Go To lambda -> Functions -> WebMon -> [Add trigger] Button
  > Inside the trigger configuration select "CloudWatch Events/EventBridge" as the trigger source and create a new rule with a trigger frequency. In the current example it's set as 5 minutes.
  > [Trigger Configuration](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Schedule.PNG)
- > Once trigger is in place the WebMon Lambda will look like this [WebMon View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Trigger_View.PNG)  
+ > Once trigger is in place the WebMon lambda will look like this [WebMon View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Trigger_View.PNG)  
 
 ### Tree view
 ```bash
