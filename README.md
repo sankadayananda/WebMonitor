@@ -27,7 +27,7 @@ cd ~/layers_paramiko/python
 pip install paramiko -t ./
 zip -r ../paramiko.zip .
 ```
- > Optionally I have made them public via s3 bucket 
+ > Optionally I have made them public via s3 bucket. The below links could be directly pasted when adding layers. 
  - [https://sankalayers.s3.ap-south-1.amazonaws.com/requests.zip](https://sankalayers.s3.ap-south-1.amazonaws.com/requests.zip)
  - [https://sankalayers.s3.ap-south-1.amazonaws.com/paramiko.zip](https://sankalayers.s3.ap-south-1.amazonaws.com/paramiko.zip)
 
@@ -40,6 +40,7 @@ zip -r ../paramiko.zip .
  > Once both layers are added you'll have a simillar sort of a view in your console - [Layer view](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_view.PNG)
 
 ### Configure the IAM Role for WebMon Lambda
+
  > Two IAM roles need to be created in order to run the both lambda functions.
  > Create a role named WebMonRole which has **AWSLambdaBasicExecutionRole** & **AWSLambdaRole** policies attached to it.
  > [WebMonRole Policy View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_IAM_Role.PNG)
@@ -81,7 +82,41 @@ zip -r ../paramiko.zip .
 
 ### Configure the IAM Role for WebHeal Lambda
 
-
+ > Create a role named WebHealRole which has **AWSLambdaBasicExecutionRole** & **AmazonS3ReadOnlyAccess** policies attached to it.
+ > [WebHealRole Policy View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_IAM_Role.PNG)
+ - AWSLambdaBasicExecutionRole Role json
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+```json
+ - AmazonS3ReadOnlyAccess Role json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:Get*",
+                "s3:List*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
 ### Configure WebMon Lambda
  > Create a Lambda function named WebMon with runtime environment python 2.7 as shown on the below image. Attach the previously created WebMonRole as the execution role.  
  > [Step 1](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Lambda_Create_1.PNG)  
@@ -98,7 +133,7 @@ zip -r ../paramiko.zip .
  - luser --> ec2 instance login name(This user need to have sudo permissions to execute privilledged commands)  
  - server_reigon --> ec2 instance reigon  
  - url --> Server health monitor url  
- - worker_lambda --> Lambda to call when the above mentioned url is not accessible  
+ - worker_lambda --> Lambda to call when the above mentioned url is not accessible.In our example it's WebHeal 
  > Once added you will see a simillar view as shown below  
  > [Environment Variables](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Environment.PNG)  
  > Once all set change the execution timeout value higher than 5s  
@@ -111,9 +146,21 @@ zip -r ../paramiko.zip .
  > [Step 2](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Lambda_Create_2.PNG)  
  > Now we need to add the previously added "paramiko" layer to the function. You can follow same steps we did for the "requests" in the previous topic.  
  > Once all set change the execution timeout value higher than 60s  
- > [Change Execution Timeout](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Lambda_Timeout.PNG) 
+ > [Change Execution Timeout](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Execution_time.PNG) 
 
-### tree view
+### Configure tests for Lambda
+ > It is highly recomended to test each lambda individually before running a integrated test.Once both indivitual and integrated tests are completed we can schedule the WebMon Lambda via CloudWatch events.Testing for Lambda can be configured in the following manner.  
+ > Inside the Lambda inbetween Actions and Tests buttons there's a drop down list. In that list select Configure test events.  
+ > Once inside, configure and run the tests in the following manner.  
+ - Configure WebMon Lambda tests --> [WebMon Test Configure](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Test_Configure.PNG) 
+ - WebMon Lambda test output --> [WebMon Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Test_Out.PNG)
+ - Configure WebHeal Lambda tests --> [WebHeal Test Configure](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Test_Configure.PNG)
+ - WebHeal Lambda test output --> [WebHeal Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Test_Out.PNG)
+ > For the integrated testing to happen the httpd service need to be shutdown temporary and run the WebMon Lambda test.Once the WebMon identifies the website is down it will trigger the WebHeal Lambda to start the httpd service.
+
+
+
+### Tree view
 ```bash
 .
 ├── README.md
