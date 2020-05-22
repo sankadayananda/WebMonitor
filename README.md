@@ -1,10 +1,16 @@
-# WebMonitor for HTTPD instance
- > WebMonitor is a two part lambda solution where it uses WebMon lambda to monitor the website availability from outside and trigger WebHeal lambda to take corrective actions to restore the website when needed.
+# WebMonitor
+ > WebMonitor is a two part lambda solution where it uses WebMon lambda to monitor the website availability from outside and trigger WebHeal lambda to take corrective actions to restore the website when needed. The WebMon lambda uses python response library to monitor Web site availability. A private S3 bucket is used to store the ec2 instance public keys. The WebHeal Lambda uses python paramiko libraryalong with the S3 stored public keys to access the ec2 instance.
+
+# AWS services used
+ - AWS Lambda
+ - ec2 instances
+ - AWS S3 Storage
+ - CloudWatch Service
+ - AWS IAM 
 
 ### Prerequisites for the Setup
  - Linux server with Python 2.7 or above
  - Python pip to download packages
- - AWS account with full access
 
 ### Preparing the Linux Server
 ```bash
@@ -32,15 +38,14 @@ zip -r ../paramiko.zip .
  - [https://sankalayers.s3.ap-south-1.amazonaws.com/paramiko.zip](https://sankalayers.s3.ap-south-1.amazonaws.com/paramiko.zip)
 
 ### Create Layers for Lambda
- > Creating package dependancies as layers in Lambda makes it easier to sperate user code from libraries.These layers are reusable and can be called by any lambda function withing the reigon.  
+ > Creating package dependancies as layers in lambda makes it easier to sperate user code from libraries.These layers are reusable and can be called by any lambda function withing the reigon.  
  > Additionally this makes the deployment packages light weight since it only contains the user code.  
  > Console --> Lambda --> Layers --> Create layer   
- > Creating requests Lambda Layer - [Add Requests Layer](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_requests.PNG)  
- > Creating paramiko  Lambda Layer - [Add Paramiko Layer](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_paramiko.PNG)  
+ > Creating requests lambda Layer - [Add Requests Layer](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_requests.PNG)  
+ > Creating paramiko  lambda Layer - [Add Paramiko Layer](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_paramiko.PNG)  
  > Once both layers are added you'll have a simillar sort of a view in your console - [Layer view](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_view.PNG)
 
 ### Configure the IAM Role for WebMon Lambda
-
  > Two IAM roles need to be created in order to run the both lambda functions.
  > Create a role named WebMonRole which has **AWSLambdaBasicExecutionRole** & **AWSLambdaRole** policies attached to it.
  > [WebMonRole Policy View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_IAM_Role.PNG)
@@ -81,7 +86,6 @@ zip -r ../paramiko.zip .
  > If you know your way around IAM policies you could give permissions to exact ARN's. This way you can prevent this role from having unwanted permissions.
 
 ### Configure the IAM Role for WebHeal Lambda
-
  > Create a role named WebHealRole which has **AWSLambdaBasicExecutionRole** & **AmazonS3ReadOnlyAccess** policies attached to it.
  > [WebHealRole Policy View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_IAM_Role.PNG)
  - AWSLambdaBasicExecutionRole Role json
@@ -101,8 +105,8 @@ zip -r ../paramiko.zip .
     ]
 }
 ```
-```json
  - AmazonS3ReadOnlyAccess Role json
+```json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -156,9 +160,14 @@ zip -r ../paramiko.zip .
  - WebMon Lambda test output --> [WebMon Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Test_Out.PNG)
  - Configure WebHeal Lambda tests --> [WebHeal Test Configure](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Test_Configure.PNG)
  - WebHeal Lambda test output --> [WebHeal Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebHeal_Test_Out.PNG)
- > For the integrated testing to happen the httpd service need to be shutdown temporary and run the WebMon Lambda test.Once the WebMon identifies the website is down it will trigger the WebHeal Lambda to start the httpd service.
+ > For the integrated testing to happen the httpd service need to be shutdown temporary and run the WebMon Lambda test.Once the WebMon identifies the website is down, it will trigger the WebHeal Lambda to start the httpd service.
+ - [Integrated Test Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMonitor_integrated_test.PNG)
+ > The two Lambda functions will create logs under CloudWatch log groups
+ - [CloudWatch Log Groups View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMonitor_CloudWatch_Log_Groups.PNG)
+ > The WebHeal Lambda output can be seen via CloudWatch log groups
+ - [CloudWatch WebHeal Output](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMonitor_CloudWatch_WebHeal_Log.PNG) 
 
-
+### Schedule WebMon via CLoudwatch 
 
 ### Tree view
 ```bash
