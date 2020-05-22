@@ -2,8 +2,9 @@
  > WebMonitor is a two part lambda solution where it uses WebMon lambda to monitor the website availability from outside and trigger WebHeal lambda to take corrective actions to restore the website when needed.
  > The WebMon lambda uses python response library to monitor Web site availability. A private s3 bucket is used to store the ec2 instance public keys.
  > The WebHeal lambda uses python paramiko library along with the s3 stored public keys to access the ec2 instance.  
+```bash
 ![Architecture](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMoitor_Diagram.png)
-
+```
 ### Notes
  > This is not a fully fledged application that is capable of handling all Web Site errors.
 
