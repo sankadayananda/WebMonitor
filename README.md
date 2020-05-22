@@ -36,16 +36,16 @@ zip -r ../paramiko.zip .
  > Additionally this makes the deployment packages light weight since it only contains the user code.
  > Console --> Lambda --> Layers --> Create layer
  > Creating requests Lambda Layer
- - [Add Requests Layer](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_requests.PNG)
+ > - [Add Requests Layer](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_requests.PNG)
  > Creating paramiko  Lambda Layer
- - [Add Paramiko Layer](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_paramiko.PNG)
+ > - [Add Paramiko Layer](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_paramiko.PNG)
  > Once both layers are added you'll have a simillar sort of a view in your console
- - [Layer view](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_view.PNG)
+ > - [Layer view](https://webmon-images.s3.ap-south-1.amazonaws.com/layers_view.PNG)
 
 ### Configure the IAM Role for WebMon Lambda
  > Two IAM roles need to be created in order to run the both lambda functions.
  > Create a role named WebMonRole which has **AWSLambdaBasicExecutionRole** & **AWSLambdaRole** policies attached to it.
-[WebMonRole Policy View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_IAM_Role.PNG)
+ > [WebMonRole Policy View](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_IAM_Role.PNG)
  - AWSLambdaBasicExecutionRole Role json
 ```json
 {
@@ -87,9 +87,25 @@ zip -r ../paramiko.zip .
 
 ### Configure WebMon Lambda
  > Create a Lambda function named WebMon with runtime environment python 2.7 as shown on the below image. Attach the previously created WebMonRole as the execution role.
-[Step 1](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Lambda_Create_1.PNG)
-
-[Step 2](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Lambda_Create_2.PNG) 
+ > [Step 1](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Lambda_Create_1.PNG)
+ > The Lambda function handler info need to updated with the python script name and trigger function name of Lambda. In our example it's "WebMon.trigger_handler".
+ > [Step 2](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Lambda_Create_2.PNG) 
+ > Now we need to add the previously added "requests" layer to the function. You can do it in the following manner
+ > [select layers](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_requests_layer1.PNG)
+ > [add layer to function](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_requests_layer2.PNG)
+ > [function view](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_requests_layer3.PNG)
+ > Add the required environemnt variables as shown in the below screen captures
+ - keydir --> s3 bucket name that holds the public key file.(Ex: - keyfiledir )Need to make sure this is a private bucket since it holds the ec2 instance key
+ - keyfile  --> name of the keyfile to connect to ec2 instance
+ - server_ip --> ec2 instance IP
+ - luser --> ec2 instance login name(This user need to have sudo permissions to execute privilledged commands)
+ - server_reigon --> ec2 instance reigon
+ - url --> Server health monitor url
+ - worker_lambda --> Lambda to call when the url is not accessible
+ > Once added you will see a simillar view as shown below
+ > [Environment Variables](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Environment.PNG)
+ > Once all set change the execution timeout value higher than 5s
+ > [Change Execution Timeout](https://webmon-images.s3.ap-south-1.amazonaws.com/WebMon_Execution_time.PNG)
 
 ### tree view
 ```bash

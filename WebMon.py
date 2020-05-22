@@ -45,3 +45,4 @@ def trigger_handler(event, context):
     return{
         'message' : "Trigger function finished"
     }
+trigger_handler("1","2")
